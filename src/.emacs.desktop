@@ -1,0 +1,842 @@
+;; -*- mode: emacs-lisp; coding: emacs-mule; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Sat Oct 31 04:14:27 2009
+;; Desktop file format version 206
+;; Emacs version 22.3.1
+
+;; Global section:
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring '("short" "Dr" "smstg" "error " "storag" "cu(" "carry" "storag" "pc_r" "pz_r" "x2" "growth" "904" "wellmode" "welpo" "welsup"))
+(setq regexp-search-ring nil)
+(setq register-alist '((119 . "Daily.  Adjust for leap year.\n            nper = DaysInYear(NYR + NYR1 -1)\n         else\n            nper = 12\n         endif\n\n         m_year = nyr\n\n	 !Initialize the farm beginning month to 12 for each year\n         fbegmo(IB,NYR) = 12\n	 !Initialize the farm end month to 1 for each year\n         fendmo(IB,NYR) = 1\n\n	 !Same for daily.\n         fbegda(IB, NYR) = 366\n         fendda(IB, NYR) = 1\n\n	 !Initialize the composite application efficiency to zero\n         cappeff(IB) = 0.0\n         totarea = 0.0 \n\n	 !Get Growing Season (Begin and End Dates)\n         DO IP = 1, nparce(IB)\n\n            CALL CLNDR(jbeg(IP,nyr), m_year, nbegmo(IP), nbegda(IP))\n            CALL CLNDR(jend(IP,nyr), m_year, nendmo(IP), nendda(IP))\n\n	    !Setting the initial month for a farm to the earliest month\n	    !  from all the fields that are part of that farm\n            IF( nbegmo(IP) .LT. fbegmo(IB,NYR)) THEN\n               fbegmo(ib,nyr) = nbegmo(ip)\n            ENDIF\n	    !Setting the final month for a farm to the latest month\n	    !  from all the fields that are part of that farm\n            IF( nendmo(IP) .GT. fendmo(IB,NYR)) THEN\n               fendmo(ib,nyr) = nendmo(ip)\n            ENDIF\n\n	    !Find earliest daily planting and harvest.\n            if (jbeg(IP,nyr) .LT. fbegda(IB, NYR)) then\n               fbegda(IB, NYR) = jbeg(IP,nyr)\n            endif\n            if (jend(IP,nyr) .GT. fendda(IB, NYR)) then\n               fendda(IB, NYR) = jend(IP,nyr)\n            endif\n\n	    !Compute the composite application efficiency\n\n            cappeff(IB) = aeff(IB,IP)*AREA(IB,IP,NYR) + cappeff(IB)\n            totarea = AREA(IB,IP,NYR) + totarea\n	\n    END DO\n\n         IF(totarea .GT. 0.001 ) THEN\n            cappeff(IB) = cappeff(IB)/totarea\n         ELSE\n	    !Patterson:\n	    !Generate a synthetic application efficiency for when there\n	    !is field efficiency but no acreage.  This will allow us to \n	    !generate values for farm supply available for CU.\n            rsum = 0.0\n            DO IP = 1, nparce(IB)\n               rsum = rsum + aeff(IB,IP)\n       END DO\n            IF (nparce(IB) > 0) cappeff(IB) = rsum / nparce(IB)\n         ENDIF\n\n	 !-------------------------------------------------------\n	 ! Compute Conveyance Loss and Water Available in the Farm\n	 !-------------------------------------------------------\n\n         DO iper = 1, nper\n            IF(SPFLAG .EQ. 1) THEN\n               fsuply(iper) = SUPLOSS(NYR,iper)\n            ELSE\n               fsuply(iper) = CEFF(IB,NYR)*SUPLY(NYR,iper)\n            ENDIF\n            closs(iper) = suply(nyr,iper) - fsuply(iper)\n     END DO\n\n     !et_method = 2 - Reference Equation  (Grass and Alfalfa Based)\n     if (et_method .EQ. 2) then\n	CALL PROTO(IB, nyr, .false., cu, cuirr, er, exces_er, shorts_d)\n!--------et_method = 4 - Kimberly Penman\n         elseif (et_method .EQ. 4) then\n            CALL PROTO(IB, nyr, .false., cu, cuirr, er, exces_er, shorts_d)\n!--------et_method = 6 ASCE\n         elseif (et_method .EQ. 6) then\n            CALL PROTO(IB, nyr, .false., cu, cuirr, er, exces_er, shorts_d)\n         else                   ! BC and KP\n            CALL BCPET(IB, et_method, nyr, ttemps, ddays, ttempf, ddayf, &\n		 xxf, xxkt, xxkc, Ret, &\n		 nbegmo, nbegda, nendmo, nendda, tot_rain, &\n		 !Output\n		 cu, cuirr, er, exces_er)\n         endif\n\n         CALL BCWBORIG(IB, nyr, nper, farmlos, cuirr, &\n	      !Output\n	      shorts, shorts_d, wpump, reqt, fsuply, runoff, cussup, &\n	      sur_sup, wel_sup)\n\n	 !-----------------------------------------------\n	 ! Create temporary file \"tmp1\" for Blaney-Criddle\n	 !-----------------------------------------------\n         IF (ISUPLY.EQ.0) THEN\n            DO iper = 1, nper\n               WRITE(11,*) reqt(iper), cussup(iper)        \n	    END DO\n         ELSE\n	    !-------------------------------------------------\n	    ! If the structure exist then provide water supply\n	    !   otherwise do not provide water supply information\n	    !-------------------------------------------------\n            DO iper = 1, nper\n               IF(EXIST(nyr) .EQ. 1 .OR. SPFLAG .EQ. 1) THEN\n\n		  !A River Supply  \n		  !  For a given farm (modeling area), sum of river headgate \n		  !  prorata diversions for the various surface water sources.\n		  !  River headgate prorata diversion is total river \n		  !  headgate diversion for a given water source multiplied \n		  !  by \"farm share allotment divided by total shares\"\n\n                  a = suply(nyr,iper)\n\n!B Conveyance Loss\n!  (1-conveyance efficiency) multiplied by A (River Supply)\n\n                  b = closs(iper)\n\n!C Farm Surface Water Supply\n!  A minus B\n\n                  c = suply(nyr,iper)-closs(iper)\n\n!D Surface Water Supply Available for CU\n!Application Efficiency for surface water multiplied by C\n\n                  d = c * cappeff(IB)\n\n!E Surface Water DP and Runoff \n!  C minus D\n\n                  e = c - d\n\n!F Farm Well Supply\n!  Sum of discharge measurements in acre-feet for all wells \n!  on farm (modeling area)\n\n                  IF( NWELL(IB).GT.0 .AND. WELLMODE .EQ. 0) THEN \n                     f = wpump(iper) \n                  ELSE                  \n                     f = bwelsup(ib,nyr,iper)\n                  ENDIF\n\n!G Well Water Available for CU\n!  Application Efficiency for well water multiplied by F\n\n                  IF( NWELL(IB).GT.0 .AND. WELLMODE .EQ. 0) THEN \n                     g = wpump(iper) \n                  ELSE                  \n                     g = bwelacu(ib,nyr,iper)\n                  ENDIF\n\n!H Well Water Loss DP and Runoff\n!F minus G\n\n                  h =	f - g\n\n!I Total WATER SUPPLIES (Surface + Well) Available for CU\n!  D plus G\n!  If scenario being viewed has no well supply, then I = D and \n!  F, G, and H are \"greyed-out\" (non active) on check box menu \n!  at top of Water Budget sheet.\n\n                  i = d + g\n\n!J Total Rainfall\n!  Acre-feet for total farm irrigated acres\n\n                  j = RNTOT3(ib,nyr,iper)*T_AREA(IB,nyr)/12.0\n\n!K Effective Rainfall to CU  See Footnote 1\n\n                  k = 0\n                  do 202 ip = 1, nparce(IB)\n                     k = k + er(IP,iper) * (AREA(IB,IP,nyr) / 12.0)\n 202              continue\n\n!N Irrigation Water Requirement (IWR)\n!  Gross CU minus K \n!                   Computed by field and then summed for farm (modeling area)\n\n                  n = reqt(iper)\n\n!P Shortage\n!  Shortage is zero for scenario where groundwater assumed to \n!  meet all remaining IWR in a month not met by that month's \n!  surface water supplies or soil moisture storage.\n!  For other scenarios (ie, no wells or using well discharge \n!  measurements), if O (before setting to zero or PRESET \n!  value) is less than zero, then absolute value of O, \n!  otherwise zero.\n\n		  p = shorts(iper)\n\n!T CU Met by Groundwater\n!  Only for scenario where groundwater assumed to meet all \n!  remaining IWR in a month not met by that month's surface \n!  water supplies or soil moisture storage;\n!  If O (before setting to zero or PRESET value) is less \n!  than zero, then absolute value of O, otherwise zero.\n\n                  IF( NWELL(IB).GT.0 .AND. WELLMODE .EQ. 0) THEN \n                     t = wpump(iper) \n                  ELSE                  \n                     t = wel_sup(iper)\n                  ENDIF\n\n!Q Depletion of WATER SUPPLIES \n!  Positive values of [O minus (Carryover soil moisture from \n!  previous month + iper)] plus (N - P) \n!  If this value is greater than I, then I, otherwise this \n!  value.\n IF( NWELL(IB).GT.0 .AND. WELLMODE .EQ. 0) THEN \n                     q = cussup(iper) + t \n                  ELSE                  \n                     q = cussup(iper)\n                  ENDIF\n\n!R Additional DP and Runoff of WATER SUPPLIES\n!  I minus Q\n\n                  r = i - q\n\n!S Total DP and Runoff of WATER SUPPLIES\n!  E plus H plus R\n\n                  s = e + h + r\n\n!SS CU Met by Surface Water\n\n                  ss = sur_sup(iper)\n\n!Shortage due to well discharge\n\n\n                  WRITE(11,*) a, b, c, d, e, f, g, h, i, j, k, &\n                    n, p, q, r, s, ss, t\n\n               ELSE\n                 WRITE(11,*) 0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0., &\n		      0.,0.,0.,0.\n               ENDIF\n  198       END DO\n         ENDIF\n!-----------------------------------------------\n! Create temporary file \"tmp4\" for Blaney-Criddle\n!-----------------------------------------------\n         IF (ISUPLY.EQ.0) THEN\n            WRITE(14,*) (cussup(MM), MM=1,nper)\n         ELSE\n            IF(EXIST(nyr) .EQ. 1 .OR. SPFLAG .EQ. 1) THEN\n               IF( NWELL(IB).GT.0 .AND. WELLMODE .EQ. 0) THEN \n                  WRITE(14,*) (cussup(MM)+wpump(MM), MM=1,nper)\n               ELSE                  \n                  WRITE(14,*) (cussup(MM), MM=1,nper)\n               ENDIF\n            ELSE\n               WRITE(14,*) 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0\n            ENDIF\n         ENDIF\n\n         if (et_method .ne. 4 .and. et_method .ne. 2 &\n             .and. et_method .ne. 6) then\n         else\n            CALL PROTO(IB, nyr, .true., cu, cuirr, er, exces_er, &\n		 shorts_d)\n	    ! Recalculate variables\n            CALL BCWBORIG(IB, nyr, nper, farmlos, cuirr, &\n		 !Output\n		 shorts, shorts_d, wpump, reqt, fsuply, runoff, cussup, &\n		 sur_sup, wel_sup)\n\n         endif\n\n         CALL BCENHANCE(nyr, IB, carry0, storag)\n         CALL BCSMB(nyr, IB, nper, farmlos, er, exces_er, cuirr, &\n	      nendmo, nendda, &\n	      !Output\n	      storag, er_st, carry, &\n	      shorts, wpump, reqt, fsuply, runoff, cussup, &\n	      sur_sup, wel_sup)\n\n	 !-----------------------------------------------  \n	 ! Create temporary file \"tmp2\" for Blaney-Criddle\n	 !-----------------------------------------------\n         IF (ISUPLY.EQ.0) THEN\n            DO iper = 1, nper\n	       !Sum up rain to CU for each parcel.\n               k = 0\n               do ip = 1, nparce(IB)\n                  k = k + er(IP,iper) * (AREA(IB,IP,nyr) / 12.0)\n               end do\n\n               WRITE(12,*)k,reqt(iper),carry(iper), cussup(iper), shorts(iper)\n	    END DO\n         ELSE\n            DO 897 iper = 1, nper\n               IF(EXIST(nyr) .EQ. 1 .OR. SPFLAG .EQ. 1) THEN\n\n!A River Supply  \n!  For a given farm (modeling area), sum of river headgate \n!  prorata diversions for the various surface water sources.\n!  River headgate prorata diversion is total river \n!  headgate diversion for a given water source multiplied \n!  by \"farm share allotment divided by total shares\"\n\n                  a = suply(nyr,iper)\n\n!B Conveyance Loss\n!  (1-conveyance efficiency) multiplied by A (River Supply)\n\n                  b = closs(iper)\n\n!C Farm Surface Water Supply\n!  A minus B\n\n                  c = suply(nyr,iper)-closs(iper)\n\n!D Surface Water Supply Available for CU\n!Application Efficiency for surface water multiplied by C\n\n                  d = c * cappeff(IB)\n\n!E Surface Water DP and Runoff \n!") (115 . "")))
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/distr.f90"
+  "distr.f90"
+  'f90-mode
+  '(abbrev-mode)
+  6629
+  '(13802 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/bcsmb.f90"
+  "bcsmb.f90"
+  'f90-mode
+  '(abbrev-mode)
+  8174
+  '(9235 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/proto.f90"
+  "proto.f90"
+  'f90-mode
+  '(abbrev-mode)
+  10898
+  '(10317 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/calpcrop.f90"
+  "calpcrop.f90"
+  'f90-mode
+  '(abbrev-mode)
+  17755
+  '(17905 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/bcenhance.f90"
+  "bcenhance.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3274
+  '(3039 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/calc_storage.f90"
+  "calc_storage.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/calc_cu.f90"
+  "calc_cu.f90"
+  'f90-mode
+  '(abbrev-mode)
+  6440
+  '(2507 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/growth_gdd.f90"
+  "growth_gdd.f90"
+  'f90-mode
+  '(abbrev-mode)
+  978
+  '(1288 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/read_weather.f90"
+  "read_weather.f90"
+  'f90-mode
+  '(abbrev-mode)
+  15024
+  '(14983 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/kcpm2.f90"
+  "kcpm2.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2054
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/kcpm.f90"
+  "kcpm.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2275
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/foutput.f90"
+  "foutput.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3123
+  '(3619 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/spwellw.f90"
+  "spwellw.f90"
+  'f90-mode
+  '(abbrev-mode)
+  7049
+  '(6444 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/wbudget.f90"
+  "wbudget.f90"
+  'f90-mode
+  '(abbrev-mode)
+  4913
+  '(5443 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos) (overwrite-mode)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/run_cu.f90"
+  "run_cu.f90"
+  'f90-mode
+  '(abbrev-mode)
+  16154
+  '(23547 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/globals.f90"
+  "globals.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3427
+  '(3410 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix) (overwrite-mode)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/interkc.f90"
+  "interkc.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2104
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/annuacrp.f90"
+  "annuacrp.f90"
+  'f90-mode
+  '(abbrev-mode)
+  5371
+  '(4490 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/perencrp.f90"
+  "perencrp.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3895
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/bcpet.f90"
+  "bcpet.f90"
+  'f90-mode
+  '(abbrev-mode)
+  5294
+  '(2824 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/budget.f90"
+  "budget.f90"
+  'f90-mode
+  '(abbrev-mode)
+  12873
+  '(12333 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/intertd.f90"
+  "intertd.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1974
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/dayhrs.f90"
+  "dayhrs.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1446
+  '(4388 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/kpannual.f90"
+  "kpannual.f90"
+  'f90-mode
+  '(abbrev-mode)
+  4569
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/myexit.f90"
+  "myexit.f90"
+  'f90-mode
+  '(abbrev-mode)
+  9778
+  '(9778 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/read_crop_bc.f90"
+  "read_crop_bc.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1101
+  '(1600 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/bcwborig.f90"
+  "bcwborig.f90"
+  'f90-mode
+  '(abbrev-mode)
+  5287
+  '(5270 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/sched.f90"
+  "sched.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3938
+  '(2630 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/proj.f90"
+  "proj.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3090
+  '(11274 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/wsdist.f90"
+  "wsdist.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2881
+  '(2881 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/etrref.f90"
+  "etrref.f90"
+  'f90-mode
+  '(abbrev-mode)
+  5208
+  '(5656 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/etref.f90"
+  "etref.f90"
+  'f90-mode
+  '(abbrev-mode)
+  5152
+  '(6124 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/kpperen.f90"
+  "kpperen.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2215
+  '(2179 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/rain.f90"
+  "rain.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3544
+  '(2344 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/acount.f90"
+  "acount.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2884
+  '(2069 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/irgate.f90"
+  "irgate.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1895
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/xcrain.f90"
+  "xcrain.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3084
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/crptype.f90"
+  "crptype.f90"
+  'f90-mode
+  '(abbrev-mode)
+  654
+  '(662 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/frost.f90"
+  "frost.f90"
+  'f90-mode
+  '(abbrev-mode)
+  6189
+  '(5397 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix) (overwrite-mode)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/read_crop_pm.f90"
+  "read_crop_pm.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2413
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/spring.f90"
+  "spring.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2630
+  '(2575 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/fall.f90"
+  "fall.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2595
+  '(2556 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/wbuild.f90"
+  "wbuild.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2063
+  '(18 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/ReadCU.f90"
+  "ReadCU.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1533
+  '(1757 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos) (overwrite-mode)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/CheckCropCoeffs.f90"
+  "CheckCropCoeffs.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1245
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos) (overwrite-mode)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/GetETString.f90"
+  "GetETString.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1
+  '(519 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/GetDP_ETindex.f90"
+  "GetDP_ETindex.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1
+  '(1383 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/spwellr.f90"
+  "spwellr.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3613
+  '(2526 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/table.f90"
+  "table.f90"
+  'f90-mode
+  '(abbrev-mode)
+  7541
+  '(5194 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/growth.f90"
+  "growth.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/spsupply.f90"
+  "spsupply.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1344
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/spdsupply.f90"
+  "spdsupply.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3148
+  '(3266 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/supply.f90"
+  "supply.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2021
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/kpcrop.f90"
+  "kpcrop.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1836
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/other.f90"
+  "other.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1475
+  '(1681 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/summary.f90"
+  "summary.f90"
+  'f90-mode
+  '(abbrev-mode)
+  16621
+  '(24387 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/oweigh.f90"
+  "oweigh.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2268
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/wellsup.f90"
+  "wellsup.f90"
+  'f90-mode
+  '(abbrev-mode)
+  998
+  '(47 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/read_crop_gdd.f90"
+  "read_crop_gdd.f90"
+  'f90-mode
+  '(abbrev-mode)
+  31
+  '(18 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/spwsupply.f90"
+  "spwsupply.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3912
+  '(3422 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/wellpump.f90"
+  "wellpump.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1
+  '(1146 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/stable.f90"
+  "stable.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1182
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/otable.f90"
+  "otable.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1734
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/recrea.f90"
+  "recrea.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1516
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/fswild.f90"
+  "fswild.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1570
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/export.f90"
+  "export.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1676
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/therma.f90"
+  "therma.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1568
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/minera.f90"
+  "minera.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1524
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/munic.f90"
+  "munic.f90"
+  'f90-mode
+  '(abbrev-mode)
+  2835
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/reserv.f90"
+  "reserv.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3575
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/stockp.f90"
+  "stockp.f90"
+  'f90-mode
+  '(abbrev-mode)
+  4376
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/lstock.f90"
+  "lstock.f90"
+  'f90-mode
+  '(abbrev-mode)
+  3194
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/skipn.f90"
+  "skipn.f90"
+  'f90-mode
+  '(abbrev-mode)
+  852
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/clndr.f90"
+  "clndr.f90"
+  'f90-mode
+  '(abbrev-mode)
+  1103
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "c:/Projects/IDSCU/SPCU_next_gen/src/skipln.f90"
+  "skipln.f90"
+  'f90-mode
+  '(abbrev-mode)
+  471
+  '(1 t)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-file-coding-system . undecided-unix)))
+

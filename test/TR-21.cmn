@@ -1,0 +1,83 @@
+Crop Consumptive Use Calculation using generic SPMAP template.
+Template created by IDS 7/7/99.
+
+version 4.6
+2000 2000 0 2000 	- begin year, end year, year type, historical end year
+
+2000 2000 100 	- simu begin year, simu end year, acreage_reduction
+2 	- number of sub-basins
+0 1 0 0 0 0 0 0 	- XCONS, REFERENCE, OTHER_USES, KIMBERLY_PENMAN, BC CALIBRATION, ASCE, 85_HARGREAVES POCHOP
+1 1 1 1 1 1 1 1 1 1 1 1  Blaney-Criddle Calibration coefficients
+0 0 9.4 9.4 9.4 9.4 9.4 7.6 7.6 7.6 9.4 9.4 9.4 9.4  Use BC elev adjustment, Blaney-Criddle Elevation Base, Offsets for each month
+1 3 1 	- monthly pptn method (1 = scs, 2 = usbr), SCS net application depth, use excess rainfall flag (0 == no, 1 == yes)
+2 0.7 0 0 	- daily pptn method (1=max, 2=factor, 3=curve number), pptn parameter 1,2,3 for daily pptn method
+0 0 0 0 	- water supply info (0 = not avail, 1 = avail)
+0 0 0 0 0 0 0 0 0 0 0 0 	Deep perc/runoff split for recharge calculation
+0 0 0 0 0 0 showActualPumping,  showDitchConveyanceReturn, showDitchDPReturn, showDitchSurfaceReturn, showWellDPReturn, showWellSurfaceReturn
+0 0 - type of input summary (0 = basic, 1 = detailed), output in QPRO format (0 = no, 1 = yes)
+2000 0.5 1 0 0 0 - annual carry over soil moisture coefficient (fraction), Fraction Full at Start of Simulation, Fraction Full at Start of each Year, which to use (0 == use old carryover winter precip mode, 1 == use Fraction full at start of each year), Fraction Full at End of each Year
+0 - if 1, then well pumping records should ignore monthly values and just use the total.
+Start of Crop Data:Crop Number(I3), Crop Name(A20), Soil Name(A15)
+27
+  1ALFALFA             SAND           
+2  ALFALFA             LOAM           
+3  ALFALFA             CLAY           
+4  GRASS_PASTURE       SAND           
+5  GRASS_PASTURE       LOAM           
+6  GRASS_PASTURE       CLAY           
+7  BARLEY              SAND           
+8  BARLEY              LOAM           
+9  BARLEY              CLAY           
+10 CORN_GRAIN          SAND           
+11 CORN_GRAIN          LOAM           
+12 CORN_GRAIN          CLAY           
+13 SUGAR_BEETS         SAND           
+14 SUGAR_BEETS         LOAM           
+15 SUGAR_BEETS         CLAY           
+16 CORN_SILAGE         SAND           
+17 CORN_SILAGE         LOAM           
+18 CORN_SILAGE         CLAY           
+19 SWEET_CORN          SAND           
+20 SWEET_CORN          LOAM           
+21 SWEET_CORN          CLAY           
+22 WINTER_WHEAT(FALL)  SAND           
+23 WINTER_WHEAT(FALL)  LOAM           
+24 WINTER_WHEAT(FALL)  CLAY           
+25 WINTER_WHEAT(SPRING)SAND           
+26 WINTER_WHEAT(SPRING)LOAM           
+27 WINTER_WHEAT(SPRING)CLAY           
+CropTable:CropNo,DayPlant,MonPlant,DayHarvest,MonHarvest,FullCover,Season,T1,T2,MAD,InitRoot,MaxRoot,AWC
+1 1 1 12 31 75 365 50 28 55 4.9 4.9 1 0 1 45 45
+2 1 1 12 31 75 365 50 28 55 4.9 4.9 1.5 0 1 45 45
+3 1 1 12 31 75 365 50 28 55 4.9 4.9 2 0 1 45 45
+4 1 1 12 31 110 365 45 45 50 3.3 3.3 1 0 0
+5 1 1 12 31 110 365 45 45 50 3.3 3.3 1.5 0 0
+6 1 1 12 31 110 365 45 45 50 3.3 3.3 2 0 0
+7 1 1 12 31 70 137 45 32 55 4.1 4.1 1 0 2
+8 1 1 12 31 70 137 45 32 55 4.1 4.1 1.5 0 2
+9 1 1 12 31 70 137 45 32 55 4.1 4.1 2 0 2
+10 1 1 12 31 72 140 55 32 60 3.9 3.9 1 0 2
+11 1 1 12 31 72 140 55 32 60 3.9 3.9 1.5 0 2
+12 1 1 12 31 72 140 55 32 60 3.9 3.9 2 0 2
+13 1 1 12 31 87 184 28 28 50 2.6 2.6 1 1 1
+14 1 1 12 31 87 184 28 28 50 2.6 2.6 1.5 1 1
+15 1 1 12 31 87 184 28 28 50 2.6 2.6 2 1 1
+16 1 1 12 31 72 140 55 32 50 3.3 3.3 1 0 0
+17 1 1 12 31 72 140 55 32 50 3.3 3.3 1.5 0 0
+18 1 1 12 31 72 140 55 32 50 3.3 3.3 2 0 0
+19 1 1 12 31 72 140 55 32 60 3.9 3.9 1 0 2
+20 1 1 12 31 72 140 55 32 60 3.9 3.9 1.5 0 2
+21 1 1 12 31 72 140 55 32 60 3.9 3.9 2 0 2
+22 9 1 12 31 50 122 45 45 0 3.3 3.3 1 0 0
+23 9 1 12 31 50 122 45 45 0 3.3 3.3 1.5 0 0
+24 9 1 12 31 50 122 45 45 0 3.3 3.3 2 0 0
+25 1 1 8 1 50 213 45 45 0 3.3 3.3 1 0 0
+26 1 1 8 1 50 213 45 45 0 3.3 3.3 1.5 0 0
+27 1 1 8 1 50 213 45 45 0 3.3 3.3 2 0 0
+Start of Acreage Data
+new farm
+5000 39.66 0 1 3 1 0.15 0 0  0   - elevation, latitude, longitude of sub-basin, number of crop-soil combination, type of output, CU short, Sprinkler Spray Loss, SDF, reach, aug plan, contract number
+1 1 100 0 1
+test
+5000 39.66 0 1 3 1 0.15 0 0  0   - elevation, latitude, longitude of sub-basin, number of crop-soil combination, type of output, CU short, Sprinkler Spray Loss, SDF, reach, aug plan, contract number
+1 0.5 100 0 1

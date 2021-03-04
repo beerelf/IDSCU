@@ -1,0 +1,201 @@
+BODY {
+	FONT-SIZE: 80%; MARGIN: 0px; COLOR: black; FONT-FAMILY: Verdana, sans-serif; BACKGROUND-COLOR: white
+}
+TD {
+	FONT-SIZE: 80%; COLOR: black; FONT-FAMILY: Verdana, sans-serif; BACKGROUND-COLOR: white
+}
+TD.depth {
+	FONT-SIZE: 11px; COLOR: #838383; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: white
+}
+TD.black {
+	FONT-SIZE: 16px; COLOR: white; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #000000
+}
+TD.green {
+	FONT-SIZE: 16px; COLOR: white; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #339900
+}
+TD.greensmall {
+	FONT-SIZE: 11px; COLOR: white; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #339900
+}
+TD.greenlight {
+	FONT-SIZE: 12px; COLOR: white; FONT-FAMILY: Verdana; BACKGROUND-COLOR: #009e99
+}
+TD.brown {
+	FONT-SIZE: 16px; COLOR: white; FONT-FAMILY: Verdana; BACKGROUND-COLOR: #e4b17e
+}
+TD.brownsmall {
+	FONT-SIZE: 11px; COLOR: white; FONT-FAMILY: Verdana; BACKGROUND-COLOR: #e4b17e
+}
+TD.bluenav {
+	FONT-SIZE: 12px; COLOR: white; FONT-FAMILY: Verdana; BACKGROUND-COLOR: #00a3bc
+}
+TD.white {
+	FONT-SIZE: 16px; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #ffffff
+}
+TD.blue {
+	FONT-SIZE: 16px; COLOR: white; FONT-FAMILY: Arial; BACKGROUND-COLOR: #0000ff
+}
+TD.bluesmall {
+	FONT-SIZE: 11px; COLOR: white; FONT-FAMILY: Arial; BACKGROUND-COLOR: #0000ff
+}
+TD.report {
+	FONT-SIZE: 80%; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: white
+}
+TD.backwhite {
+	FONT-SIZE: 80%; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #ffffff
+}
+TD.bluelight {
+	FONT-SIZE: 80%; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #99ccff
+}
+TD.greylight {
+	FONT-SIZE: 80%; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #e5e5e5
+}
+TD.browntableheader {
+	FONT-SIZE: 12px; COLOR: white; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #997501
+}
+TD.browntablecontent {
+	FONT-SIZE: 12px; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #997501
+}
+TD.lightbrowntablecontent {
+	FONT-SIZE: 12px; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #cccc99
+}
+TD.greentableheader {
+	FONT-SIZE: 12px; COLOR: white; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #009900
+}
+TD.greentablecontent {
+	FONT-SIZE: 11px; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #98cb7e
+}
+TD.greengreytablecontent {
+	FONT-SIZE: 11px; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #d0e1cd
+}
+TD.lightgreentablecontent {
+	FONT-SIZE: 10px; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #cccc99
+}
+TD.bluetableheader {
+	FONT-SIZE: 12px; COLOR: white; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #00a3bc
+}
+TD.bluetablecontent {
+	FONT-SIZE: 12px; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #00a3bc
+}
+TD.lightbluetablecontent {
+	FONT-SIZE: 12px; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #b2e3eb
+}
+TD.greymedium {
+	FONT-SIZE: 80%; COLOR: black; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #cccccc
+}
+TD.greydark {
+	FONT-WEIGHT: bold; FONT-SIZE: 80%; COLOR: white; FONT-FAMILY: Arial; BACKGROUND-COLOR: #999999
+}
+TD.language {
+	FONT-SIZE: 10px; COLOR: black; BACKGROUND-COLOR: #cccccc
+}
+TD.search {
+	FONT-SIZE: 12px; COLOR: black; BACKGROUND-COLOR: #999999
+}
+TD.copyright {
+	FONT-SIZE: 9px; COLOR: black; FONT-FAMILY: Verdana; BACKGROUND-COLOR: #cccccc
+}
+TD.bottomnav {
+	FONT-SIZE: 12px; COLOR: white; FONT-FAMILY: Arial, san-serif; BACKGROUND-COLOR: #000000
+}
+A.tablelink {
+	FONT-SIZE: 12px; COLOR: black; FONT-FAMILY: Verdana, san-serif; TEXT-DECORATION: none
+}
+A.tablelink:hover {
+	FONT-SIZE: 12px; COLOR: #0000ff; FONT-FAMILY: Verdana, san-serif; TEXT-DECORATION: underline
+}
+A.tablelinkwhite {
+	FONT-SIZE: 12px; COLOR: #000000; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.tablelinkwhite:hover {
+	FONT-SIZE: 12px; COLOR: #0000ff; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.toplink {
+	FONT-SIZE: 11px; COLOR: #0000ff; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.toplink:hover {
+	FONT-SIZE: 11px; COLOR: #0000ff; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.topbrownlink {
+	FONT-SIZE: 11px; COLOR: #997501; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.topbrownlink:hover {
+	FONT-SIZE: 11px; COLOR: #997501; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.topbluelink {
+	FONT-SIZE: 11px; COLOR: #00a3bc; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.topbluelink:hover {
+	FONT-SIZE: 11px; COLOR: #00a3bc; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.bottombrownlink {
+	FONT-SIZE: 9px; COLOR: #997501; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.bottombrownlink:hover {
+	FONT-SIZE: 9px; COLOR: #997501; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.bottombluelink {
+	FONT-SIZE: 9px; COLOR: #00a3bc; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.bottombluelink:hover {
+	FONT-SIZE: 9px; COLOR: #00a3bc; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.toplinkright {
+	FONT-SIZE: 11px; COLOR: white; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.toplinkright:hover {
+	FONT-SIZE: 11px; COLOR: white; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.depthlink {
+	FONT-SIZE: 11px; COLOR: blue; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.depthlink:hover {
+	FONT-SIZE: 11px; COLOR: blue; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.blacklink {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #000000; FONT-FAMILY: Verdana, san-serif; TEXT-DECORATION: none
+}
+A.blacklink:hover {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #000000; FONT-FAMILY: Verdana, san-serif; TEXT-DECORATION: underline
+}
+A.blacklinkstrong {
+	FONT-WEIGHT: bold; COLOR: #000000; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.blacklinkstrong:hover {
+	FONT-WEIGHT: bold; COLOR: #0000ff; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.bluelink {
+	COLOR: #0000ff; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.bluelink:hover {
+	COLOR: #0000ff; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.brownlink {
+	COLOR: #e4b17e; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.brownlink:hover {
+	COLOR: #e4b17e; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.greenlink {
+	COLOR: #339900; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.greenlink:hover {
+	COLOR: #339900; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.bluelinkstrong {
+	FONT-WEIGHT: bold; COLOR: #0000ff; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.bluelinkstrong:hover {
+	FONT-WEIGHT: bold; COLOR: #0000ff; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.searchlink {
+	FONT-SIZE: 12px; COLOR: #0000ff; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.searchlink:hover {
+	FONT-SIZE: 12px; COLOR: #0000ff; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}
+A.bottomlinkright {
+	FONT-SIZE: 10px; COLOR: white; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: none
+}
+A.bottomlinkright:hover {
+	FONT-SIZE: 10px; COLOR: white; FONT-FAMILY: Arial, san-serif; TEXT-DECORATION: underline
+}

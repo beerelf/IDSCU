@@ -1,0 +1,20 @@
+2 2000 2000
+0 -- Farm allotment can vary from year to year if 1.
+new farm                       1    1    0         1         1
+_FARMHEADGATE                              1.00000   1.00000    0    0    0
+1 -- Annual shares of the ditch.
+2000 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 
+fake ditch                                 1.00000   1.00000    0    0    0
+0 -- Annual shares of the ditch.
+2000 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 
+test                           1    1    0         1         1
+_FARMHEADGATE                              1.00000   1.00000    0    0    0
+1 -- Annual shares of the ditch.
+2000 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 
+fake ditch                                 1.00000   1.00000    0    0    0
+0 -- Annual shares of the ditch.
+2000 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 -999 
+Number of ditches = 1
+fake ditch                              1         0    1         
+2000 0 0 0 0 0 0 0 0 0 0 0 0 
+Number of measurement records = 0
